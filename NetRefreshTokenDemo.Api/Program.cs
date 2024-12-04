@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using NetRefreshTokenDemo.Api.Data;
 using NetRefreshTokenDemo.Api.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -61,5 +62,7 @@ app.UseAuthentication(); // 👈👈it is new line
 app.UseAuthorization();
 
 app.MapControllers();
+
+await DbSeeder.SeedData(app);
 
 app.Run();
