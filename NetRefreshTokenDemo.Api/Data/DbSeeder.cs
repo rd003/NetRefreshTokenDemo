@@ -52,19 +52,6 @@ public class DbSeeder
                     SecurityStamp = Guid.NewGuid().ToString()
                 };
 
-                // Attempt to create admin user
-                var createUserResult = await userManager.CreateAsync(user: user, password: "Admin@123");
-
-                // Validate user creation
-                if (createUserResult.Succeeded == false)
-                {
-                    var errors = createUserResult.Errors.Select(e => e.Description);
-                    logger.LogError(
-                        $"Failed to create admin user. Errors: {string.Join(", ", errors)}"
-                    );
-                    return;
-                }
-
                 // Create Admin role if it doesn't exist
                 if ((await roleManager.RoleExistsAsync(Roles.Admin)) == false)
                 {
@@ -79,6 +66,19 @@ public class DbSeeder
                         return;
                     }
                     logger.LogInformation("Admin role is created");
+                }
+
+                // Attempt to create admin user
+                var createUserResult = await userManager.CreateAsync(user: user, password: "Admin@123");
+
+                // Validate user creation
+                if (createUserResult.Succeeded == false)
+                {
+                    var errors = createUserResult.Errors.Select(e => e.Description);
+                    logger.LogError(
+                        $"Failed to create admin user. Errors: {string.Join(", ", errors)}"
+                    );
+                    return;
                 }
 
                 // adding role to user
