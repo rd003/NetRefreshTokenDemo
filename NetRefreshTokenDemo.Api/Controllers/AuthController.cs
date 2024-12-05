@@ -1,8 +1,11 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using NetRefreshTokenDemo.Api.Constants;
 using NetRefreshTokenDemo.Api.Models;
 using NetRefreshTokenDemo.Api.Models.DTOs;
+using NetRefreshTokenDemo.Api.Services;
 
 namespace NetRefreshTokenDemo.Api.Controllers;
 
@@ -13,12 +16,16 @@ public class AuthController : ControllerBase
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly ILogger<AuthController> _logger;
+    private readonly ITokenService _tokenService;
+    private readonly AppDbContext _context;
 
-    public AuthController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, ILogger<AuthController> logger)
+    public AuthController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, ILogger<AuthController> logger, ITokenService tokenService, AppDbContext context)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _logger = logger;
+        _tokenService = tokenService;
+        _context = context;
     }
 
     [HttpPost("signup")]
@@ -85,9 +92,76 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public IActionResult Login()
+    public async Task<IActionResult> Login(LoginModel model)
     {
-        return Ok();
+        try
+        {
+            var user = await _userManager.FindByNameAsync(model.Username);
+            if (user == null)
+            {
+                return BadRequest("User with this username is not registered with us.");
+            }
+            bool isValidPassword = await _userManager.CheckPasswordAsync(user, model.Password);
+            if (isValidPassword == false)
+            {
+                return Unauthorized();
+            }
+
+            // creating the necessary claims
+            List<Claim> authClaims = [
+                    new (ClaimTypes.Name, user.UserName),
+                    new (JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // unique id for token
+            ];
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+            // adding roles to the claims. So that we can get the user role from the token.
+            foreach (var userRole in userRoles)
+            {
+                authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+            }
+
+            // generating access token
+            var token = _tokenService.GetAccessToken(authClaims);
+
+            string refreshToken = _tokenService.GenerateRefreshToken();
+
+            //save refreshToken with exp date in the database
+            var tokenInfo = _context.TokenInfos.FirstOrDefault(a => a.Username == user.UserName);
+
+            // If tokenInfo is null for the user, create a new one
+            if (tokenInfo == null)
+            {
+                var ti = new TokenInfo
+                {
+                    Username = user.UserName,
+                    RefreshToken = refreshToken,
+                    ExpiredAt = DateTime.Now.AddDays(7)
+                };
+                _context.TokenInfos.Add(ti);
+            }
+            // Else, update the refresh token and expiration
+            else
+            {
+                tokenInfo.RefreshToken = refreshToken;
+                tokenInfo.ExpiredAt = DateTime.Now.AddDays(7);
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new TokenModel
+            {
+                AccessToken = token,
+                RefreshToken = refreshToken
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message);
+
+            return StatusCode(StatusCodes.Status500InternalServerError);
+        }
+
     }
+
 }
 

@@ -59,7 +59,7 @@ namespace NetRefreshTokenDemo.Api.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Username = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
-                    RefreshToken = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
+                    RefreshToken = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     ExpiredAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>

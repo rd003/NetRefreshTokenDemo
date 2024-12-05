@@ -11,7 +11,7 @@ public class TokenInfo
     public string Username { get; set; } = string.Empty;
 
     [Required]
-    [MaxLength(30)]
+    [MaxLength(200)]
     public string RefreshToken { get; set; } = string.Empty;
 
     [Required]

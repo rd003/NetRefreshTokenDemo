@@ -5,38 +5,19 @@ using NetRefreshTokenDemo.Api.Models;
 
 namespace NetRefreshTokenDemo.Api.Data;
 
-/// <summary>
-/// Provides database seeding functionality for initial application setup
-/// Handles database migrations, default user, and role creation
-/// </summary>
 public class DbSeeder
 {
-    /// <summary>
-    /// Seeds initial application data, including database migrations and default admin user
-    /// </summary>
-    /// <param name="app">The application builder used to create a service scope</param>
-    /// <returns>A task representing the asynchronous seeding operation</returns>
     public static async Task SeedData(IApplicationBuilder app)
     {
         // Create a scoped service provider to resolve dependencies
         using var scope = app.ApplicationServices.CreateScope();
 
-        // resolve the logger server
+        // resolve the logger service
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<DbSeeder>>();
 
         try
         {
-            // Resolve AppDbContext service
-            var context = scope.ServiceProvider.GetService<AppDbContext>();
-
-            // Perform database migration if pending migrations exist
-            // This ensures the database schema is up to date
-            if (context.Database.GetPendingMigrations().Count() > 0)
-            {
-                await context.Database.MigrateAsync();
-            }
-
-            // Resolve other required services
+            // resolve other dependencies
             var userManager = scope.ServiceProvider.GetService<UserManager<ApplicationUser>>();
             var roleManager = scope.ServiceProvider.GetService<RoleManager<IdentityRole>>();
 

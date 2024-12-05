@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace NetRefreshTokenDemo.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241203140934_init")]
+    [Migration("20241205152311_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -238,8 +238,8 @@ namespace NetRefreshTokenDemo.Api.Migrations
 
                     b.Property<string>("RefreshToken")
                         .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("Username")
                         .IsRequired()
