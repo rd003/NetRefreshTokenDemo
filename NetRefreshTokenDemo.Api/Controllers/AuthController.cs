@@ -163,5 +163,64 @@ public class AuthController : ControllerBase
 
     }
 
+    [HttpPost("token/refresh")]
+    public async Task<IActionResult> Refresh(TokenModel tokenModel)
+    {
+        try
+        {
+            var principal = _tokenService.GetPrincipalFromExpiredToken(tokenModel.AccessToken);
+            var username = principal.Identity.Name;
+
+            var user = _context.TokenInfos.SingleOrDefault(u => u.Username == username);
+            if (user == null || user.RefreshToken != tokenModel.RefreshToken || user.ExpiredAt <= DateTime.Now)
+            {
+                return BadRequest("Invalid client request");
+            }
+
+            var newAccessToken = _tokenService.GetAccessToken(principal.Claims);
+            var newRefreshToken = _tokenService.GenerateRefreshToken();
+
+            user.RefreshToken = newRefreshToken;
+            await _context.SaveChangesAsync();
+
+            return Ok(new TokenModel
+            {
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message);
+            return StatusCode(StatusCodes.Status500InternalServerError);
+        }
+    }
+
+    [HttpPost("token/revoke")]
+    public async Task<IActionResult> Revoke()
+    {
+        try
+        {
+            var username = User.Identity.Name;
+
+            var user = _context.TokenInfos.SingleOrDefault(u => u.Username == username);
+            if (user == null)
+            {
+                return BadRequest();
+            }
+
+            user.RefreshToken = string.Empty;
+            await _context.SaveChangesAsync();
+
+            return Ok(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message);
+            return StatusCode(StatusCodes.Status500InternalServerError);
+        }
+    }
+
+
 }
 
