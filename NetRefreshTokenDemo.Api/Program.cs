@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using NetRefreshTokenDemo.Api.Data;
 using NetRefreshTokenDemo.Api.Models;
+using NetRefreshTokenDemo.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,12 +42,12 @@ builder.Services.AddAuthentication(options =>
              ValidAudience = builder.Configuration["JWT:ValidAudience"],
              ValidIssuer = builder.Configuration["JWT:ValidIssuer"],
              ClockSkew = TimeSpan.Zero,
-             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"]))
+             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:secret"]))
          };
      }
     );
 
-
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 var app = builder.Build();
 

@@ -14,7 +14,6 @@ public class AuthController : ControllerBase
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly ILogger<AuthController> _logger;
 
-
     public AuthController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, ILogger<AuthController> logger)
     {
         _userManager = userManager;
@@ -85,5 +84,10 @@ public class AuthController : ControllerBase
         }
     }
 
+    [HttpPost("login")]
+    public IActionResult Login()
+    {
+        return Ok();
+    }
 }
 
