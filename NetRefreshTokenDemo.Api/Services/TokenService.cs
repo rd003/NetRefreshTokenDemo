@@ -72,6 +72,7 @@ public class TokenService : ITokenService
             ValidateAudience = true,
             ValidAudience = _configuration["JWT:ValidAudience"],
             ValidIssuer = _configuration["JWT:ValidIssuer"],
+            ValidateLifetime = false, // don't forget to add this line.
             ClockSkew = TimeSpan.Zero,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:secret"]))
         };
