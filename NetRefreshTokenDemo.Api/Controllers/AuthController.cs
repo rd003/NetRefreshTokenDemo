@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using NetRefreshTokenDemo.Api.Constants;
@@ -171,8 +172,8 @@ public class AuthController : ControllerBase
             var principal = _tokenService.GetPrincipalFromExpiredToken(tokenModel.AccessToken);
             var username = principal.Identity.Name;
 
-            var user = _context.TokenInfos.SingleOrDefault(u => u.Username == username);
-            if (user == null || user.RefreshToken != tokenModel.RefreshToken || user.ExpiredAt <= DateTime.Now)
+            var tokenInfo = _context.TokenInfos.SingleOrDefault(u => u.Username == username);
+            if (tokenInfo == null || tokenInfo.RefreshToken != tokenModel.RefreshToken || tokenInfo.ExpiredAt <= DateTime.Now)
             {
                 return BadRequest("Invalid client request");
             }
@@ -180,7 +181,7 @@ public class AuthController : ControllerBase
             var newAccessToken = _tokenService.GetAccessToken(principal.Claims);
             var newRefreshToken = _tokenService.GenerateRefreshToken();
 
-            user.RefreshToken = newRefreshToken;
+            tokenInfo.RefreshToken = newRefreshToken; // rotating the refresh token
             await _context.SaveChangesAsync();
 
             return Ok(new TokenModel
@@ -197,6 +198,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("token/revoke")]
+    [Authorize]
     public async Task<IActionResult> Revoke()
     {
         try
