@@ -129,6 +129,7 @@ public class AuthController : ControllerBase
             //save refreshToken with exp date in the database
             var tokenInfo = _context.TokenInfos.FirstOrDefault(a => a.Username == user.UserName);
 
+
             // If tokenInfo is null for the user, create a new one
             if (tokenInfo == null)
             {
@@ -136,7 +137,7 @@ public class AuthController : ControllerBase
                 {
                     Username = user.UserName,
                     RefreshToken = refreshToken,
-                    ExpiredAt = DateTime.Now.AddDays(7)
+                    ExpiredAt = DateTime.UtcNow.AddDays(7)
                 };
                 _context.TokenInfos.Add(ti);
             }
@@ -144,7 +145,7 @@ public class AuthController : ControllerBase
             else
             {
                 tokenInfo.RefreshToken = refreshToken;
-                tokenInfo.ExpiredAt = DateTime.Now.AddDays(7);
+                tokenInfo.ExpiredAt = DateTime.UtcNow.AddDays(7);
             }
 
             await _context.SaveChangesAsync();
@@ -173,9 +174,10 @@ public class AuthController : ControllerBase
             var username = principal.Identity.Name;
 
             var tokenInfo = _context.TokenInfos.SingleOrDefault(u => u.Username == username);
-            if (tokenInfo == null || tokenInfo.RefreshToken != tokenModel.RefreshToken || tokenInfo.ExpiredAt <= DateTime.Now)
+
+            if (tokenInfo == null || tokenInfo.RefreshToken != tokenModel.RefreshToken || tokenInfo.ExpiredAt <= DateTime.UtcNow)
             {
-                return BadRequest("Invalid client request");
+                return BadRequest("Invalid refresh token. Please login again.");
             }
 
             var newAccessToken = _tokenService.GetAccessToken(principal.Claims);
