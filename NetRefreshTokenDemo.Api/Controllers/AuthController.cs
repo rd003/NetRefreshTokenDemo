@@ -53,7 +53,7 @@ public class AuthController : ControllerBase
                 }
             }
 
-            ApplicationUser user = new ApplicationUser()
+            ApplicationUser user = new()
             {
                 Email = model.Email,
                 SecurityStamp = Guid.NewGuid().ToString(),
@@ -71,18 +71,18 @@ public class AuthController : ControllerBase
             {
                 var errors = createUserResult.Errors.Select(e => e.Description);
                 _logger.LogError(
-                    $"Failed to create admin user. Errors: {string.Join(", ", errors)}"
+                    $"Failed to create user. Errors: {string.Join(", ", errors)}"
                 );
-                return BadRequest($"Failed to create admin user. Errors: {string.Join(", ", errors)}");
+                return BadRequest($"Failed to create user. Errors: {string.Join(", ", errors)}");
             }
 
             // adding role to user
-            var addUserToRoleResult = await _userManager.AddToRoleAsync(user: user, role: Roles.Admin);
+            var addUserToRoleResult = await _userManager.AddToRoleAsync(user: user, role: Roles.User);
 
             if (addUserToRoleResult.Succeeded == false)
             {
                 var errors = addUserToRoleResult.Errors.Select(e => e.Description);
-                _logger.LogError($"Failed to add admin role to user. Errors : {string.Join(",", errors)}");
+                _logger.LogError($"Failed to add role to the user. Errors : {string.Join(",", errors)}");
             }
             return CreatedAtAction(nameof(Signup), null);
         }
