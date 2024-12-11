@@ -122,7 +122,7 @@ public class AuthController : ControllerBase
             }
 
             // generating access token
-            var token = _tokenService.GetAccessToken(authClaims);
+            var token = _tokenService.GenerateAccessToken(authClaims);
 
             string refreshToken = _tokenService.GenerateRefreshToken();
 
@@ -180,7 +180,7 @@ public class AuthController : ControllerBase
                 return BadRequest("Invalid refresh token. Please login again.");
             }
 
-            var newAccessToken = _tokenService.GetAccessToken(principal.Claims);
+            var newAccessToken = _tokenService.GenerateAccessToken(principal.Claims);
             var newRefreshToken = _tokenService.GenerateRefreshToken();
 
             tokenInfo.RefreshToken = newRefreshToken; // rotating the refresh token
