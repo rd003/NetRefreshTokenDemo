@@ -4,7 +4,7 @@ namespace NetRefreshTokenDemo.Api.Services;
 
 public interface ITokenService
 {
-    string GetAccessToken(IEnumerable<Claim> claim);
+    string GenerateAccessToken(IEnumerable<Claim> claims);
     string GenerateRefreshToken();
     ClaimsPrincipal GetPrincipalFromExpiredToken(string accessToken);
 }

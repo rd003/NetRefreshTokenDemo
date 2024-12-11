@@ -15,26 +15,29 @@ public class TokenService : ITokenService
     }
 
     /// <summary>
-    /// GGenerates a JWT access token with the specified claims.
+    /// Generates a JWT access token with the specified claims.
     /// </summary>
-    /// <param name="claim">A collection of claims to be included in the token.</param>
+    /// <param name="claims">A collection of claims to be included in the token.</param>
     /// <returns>A signed JWT access token as a string.</returns>
-    public string GetAccessToken(IEnumerable<Claim> claim)
+    public string GenerateAccessToken(IEnumerable<Claim> claims)
     {
+        var tokenHandler = new JwtSecurityTokenHandler();
+
         // Create a symmetric security key using the secret key from the configuration.
         var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
 
-        // Create a new JWT security token with the specified parameters.
-        var token = new JwtSecurityToken(
-            issuer: _configuration["JWT:ValidIssuer"],
-            audience: _configuration["JWT:ValidAudience"],
-            expires: DateTime.Now.AddMinutes(15),
-            claims: claim,
-            signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
-            );
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Issuer = _configuration["JWT:ValidIssuer"],
+            Audience = _configuration["JWT:ValidAudience"],
+            Subject = new ClaimsIdentity(claims),
+            Expires = DateTime.Now.AddMinutes(15),
+            SigningCredentials = new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
+        };
 
-        // Write and return the token as a string.
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+
+        return tokenHandler.WriteToken(token);
     }
 
 
